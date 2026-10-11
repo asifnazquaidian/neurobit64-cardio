@@ -120,7 +120,9 @@ node design/model/summary.js
 
 ## Monitor app
 
-Open `app/index.html` (or publish the `app` folder as a static site). It runs the chip model in the browser, or receives the frames from a Bluetooth serial module (Web Bluetooth) or a serial port (Web Serial) and shows the readings, the flags and the signals. It was tested with the simulated source only.
+Online: https://asifnazquaidian.github.io/neurobit64-cardio/app/?organ=heart (the simulated chip starts when the page opens; add `&cond=1` to choose a condition, `&link=1` to connect the brain chip, `&run=0` to open it stopped).
+
+Or open `app/index.html` from this folder. It runs the chip model in the browser, or receives the frames from a Bluetooth serial module (Web Bluetooth) or a serial port (Web Serial) and shows the readings, the flags and the signals. It was tested with the simulated source only.
 
 ## Reference and licence
 

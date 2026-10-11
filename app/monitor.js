@@ -163,5 +163,13 @@
   $('inAuto').addEventListener('click', () => sendInput(0xffff));
   window.addEventListener('resize', render);
   window.NB64Monitor = { S, run, stop, setOrgan };
-  setOrgan('cardio');
+  // Links can choose what is shown and start it:  ?organ=cardio|pancreas|kidney  &cond=0..7  &link=1  &run=0
+  // (heart, glucose and nephron also work as organ names). The simulated chip starts by itself unless run=0.
+  const Q = new URLSearchParams(location.search);
+  const alias = { heart: 'cardio', cardio: 'cardio', pancreas: 'pancreas', glucose: 'pancreas', kidney: 'kidney', nephron: 'kidney' };
+  setOrgan(alias[(Q.get('organ') || '').toLowerCase()] || 'cardio');
+  const qc = parseInt(Q.get('cond'), 10);
+  if (qc >= 0 && [...$('cond').options].some((o) => +o.value === qc)) $('cond').value = String(qc);
+  if (Q.get('link') === '1') $('link').checked = true;
+  if (Q.get('run') !== '0') run();
 })();
