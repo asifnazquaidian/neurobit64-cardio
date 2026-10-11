@@ -1,0 +1,4 @@
+*.vvp
+design/results/v_*.out
+design/results/m_*.out
+design/results/synth_*.log

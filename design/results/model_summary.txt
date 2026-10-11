@@ -1,0 +1,15 @@
+NeuroBit64-Cardio, software model, 60 s of model time per condition (after 4 s of start-up for the flags)
+
+cond  condition                     brain chip  beats  rate   interval ms (min-max)   RMSSD   APD   flags raised (% of reports)
+0     normal sinus rhythm           none          79    79     761 (713-818)              35.1   314   none
+1     tachycardia                   none         138   137     438 (428-468)               4.6   294   tachycardia 100
+2     bradycardia                   none          50    50    1198 (1150-1251)            34.3   322   bradycardia 100
+3     irregular rhythm              none          84    83     719 (588-970)               130   311   tachycardia 4, irregular rhythm 72
+4     conduction block              none          40    39    1522 (1448-1596)            95.3   318   bradycardia 100, irregular rhythm 72, blocked activation 100
+5     prolonged action potential    none          59    58    1030 (981-1090)             45.9   601   bradycardia 76, long action potential 100
+0     normal sinus rhythm           connected     82    82     735 (693-787)              29.5   318   none
+1     tachycardia                   connected    138   138     436 (426-465)               4.4   294   tachycardia 100
+2     bradycardia                   connected     62    62     967 (952-986)              12.6   320   none
+3     irregular rhythm              connected     86    86     701 (593-908)             105.8   319   tachycardia 5, irregular rhythm 64
+4     conduction block              connected     41    41    1471 (1408-1541)            82.1   318   bradycardia 100, irregular rhythm 50, blocked activation 100
+5     prolonged action potential    connected     60    60    1003 (962-1055)             38.9   600   bradycardia 54, long action potential 100

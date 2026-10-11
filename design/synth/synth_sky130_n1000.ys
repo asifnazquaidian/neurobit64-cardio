@@ -1,0 +1,8 @@
+read_verilog NeuroBit64-Cardio/design/rtl/nb64_link.v NeuroBit64-Cardio/design/rtl/nb64_telemetry.v NeuroBit64-Cardio/design/rtl/nb64_cardio.v
+chparam -set N 1000 nb64_cardio
+hierarchy -check -top nb64_cardio
+synth -top nb64_cardio -flatten
+dfflibmap -liberty tools/pdk/sky130_fd_sc_hd__tt_025C_1v80.lib
+abc -liberty tools/pdk/sky130_fd_sc_hd__tt_025C_1v80.lib -D 125000
+opt_clean
+tee -o NeuroBit64-Cardio/design/results/sky130_cells_n1000.txt stat -liberty tools/pdk/sky130_fd_sc_hd__tt_025C_1v80.lib

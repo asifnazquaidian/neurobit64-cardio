@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light dark">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NeuroBit64 Organ Monitor</title>
+<meta name="description" content="Monitor for the NeuroBit64-Cardio, -Pancreas and -Kidney chips: runs the chips' own integer models in the browser, or receives their reports over Bluetooth or a serial port.">
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--ink:#17202e;--mut:#5b6777;--line:#dfe5ee;--acc:#0b6bcb;--ok:#12805c;--bad:#c62828;--warn:#b26a00;
+  --a:#0b6bcb;--b:#d9480f;--c:#7b2cbf}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:14px 16px 6px;max-width:1100px;margin:0 auto}
+h1{font-size:20px;margin:0 0 2px}
+header p{margin:0;color:var(--mut);font-size:13px}
+main{max-width:1100px;margin:0 auto;padding:8px 16px 40px;display:grid;gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:8px 14px;font:inherit;cursor:pointer;color:var(--ink)}
+.seg button[aria-pressed=true]{background:var(--acc);color:#fff}
+select,button.btn,input[type=range]{font:inherit}
+select{padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;max-width:100%}
+button.btn{padding:8px 14px;border-radius:8px;border:1px solid var(--acc);background:var(--acc);color:#fff;cursor:pointer}
+button.btn.ghost{background:#fff;color:var(--acc)}
+button.btn:disabled{opacity:.45;cursor:not-allowed}
+label{font-size:13px;color:var(--mut)}
+.pill{font-size:12px;padding:3px 9px;border-radius:99px;background:#e9eef6;color:var(--mut)}
+.pill.live{background:#dff5ea;color:var(--ok)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.tile{border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.tile b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.tile span{font-size:12px;color:var(--mut)}
+.flags{display:flex;flex-wrap:wrap;gap:6px}
+.flag{font-size:12px;padding:4px 9px;border-radius:99px;border:1px solid var(--line);color:var(--mut)}
+.flag.on{background:#fde8e8;border-color:#f3b4b4;color:var(--bad);font-weight:600}
+.verdict{font-weight:700}
+.verdict.ok{color:var(--ok)} .verdict.bad{color:var(--bad)}
+canvas{width:100%;display:block;border-radius:8px;background:#fff}
+h2{font-size:14px;margin:0 0 6px}
+.legend{font-size:12px;color:var(--mut);display:flex;gap:12px;flex-wrap:wrap;margin-top:4px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.note{font-size:12px;color:var(--mut)}
+#msg{font-size:13px;color:var(--warn)}
+
+@media (prefers-color-scheme: dark){
+:root{color-scheme:dark;--bg:#0e1217;--card:#171c24;--ink:#f3f5f8;--mut:#a0abba;--line:#333d4c;--acc:#5b8def;--ok:#63d693;--bad:#ff8f85;--warn:#f2b85c}
+select,.seg button,button.btn.ghost{background:#202733;color:var(--ink)}
+.seg button[aria-pressed=true],button.btn{background:#2f6be6;border-color:#2f6be6;color:#fff}
+button.btn.ghost{border-color:var(--line)}
+.pill{background:#202733;color:var(--mut)} .pill.live{background:#143524;color:var(--ok)}
+.flag.on{background:#4a1d1d;border-color:#8a3a3a;color:#ffb4ad}
+.organ h2 i{background:#143524;color:var(--ok)} .organ h2 i.bad{background:#4a1d1d;color:#ffb4ad} .organ h2 i.warn{background:#463610;color:var(--warn)}
+svg text{fill:var(--ink)} svg rect{fill:#171c24}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>NeuroBit64 Organ Monitor</h1>
+  <p>Heart, pancreas and kidney variants of the NeuroBit64 chip. The simulated chip runs the same integer arithmetic as the Verilog design.</p>
+</header>
+<main>
+  <section class="card">
+    <div class="row">
+      <div class="seg" id="organSeg">
+        <button data-organ="cardio" aria-pressed="true">Heart</button>
+        <button data-organ="pancreas" aria-pressed="false">Pancreas</button>
+        <button data-organ="kidney" aria-pressed="false">Kidney</button>
+      </div>
+      <span class="pill" id="state">stopped</span>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <label>Source
+        <select id="source">
+          <option value="sim">Simulated chip (in this browser)</option>
+          <option value="ble">Bluetooth serial module</option>
+          <option value="serial">USB serial port (PC)</option>
+        </select>
+      </label>
+      <label id="condWrap">Condition <select id="cond"></select></label>
+      <label id="linkWrap"><input type="checkbox" id="link"> NeuroBit64-S brain chip connected</label>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="run">Run</button>
+      <button class="btn ghost" id="stop" disabled>Stop</button>
+      <label id="inWrap" hidden><span id="inLabel"></span> <input type="range" id="inVal" min="40" max="300" value="100"> <b id="inShow"></b>
+        <button class="btn ghost" id="inAuto" style="padding:4px 8px">built-in</button></label>
+    </div>
+    <div id="msg"></div>
+  </section>
+
+  <section class="card">
+    <div class="row" style="justify-content:space-between"><h2 id="vTitle">Reading</h2><span class="verdict" id="verdict"></span></div>
+    <div class="tiles" id="tiles"></div>
+    <div class="flags" id="flags" style="margin-top:10px"></div>
+  </section>
+
+  <section class="card">
+    <h2>Mean membrane potential of the 1000 cells (mV)</h2>
+    <canvas id="cSig" height="150"></canvas>
+  </section>
+  <section class="card">
+    <h2 id="cntTitle">Spikes per report (16 ms)</h2>
+    <canvas id="cCnt" height="150"></canvas>
+    <div class="legend" id="legend"></div>
+  </section>
+  <section class="card" id="rasterCard">
+    <h2>Raster: which cell fired (simulated chip only)</h2>
+    <canvas id="cRas" height="220"></canvas>
+    <p class="note">Each dot is one cell event; cell 0 at the top. This is the bit stream on the chip's SDO pin.</p>
+  </section>
+  <section class="card note">
+    <b>Hardware.</b> The chip sends a 19-byte frame (A5 5A, 16 bytes, checksum) on its UART pin at 115.9 kbaud every 16 ms.
+    Wire that pin to a Bluetooth serial module (HM-10 or a Nordic-UART module) or to a USB serial cable, then choose the source above.
+    Bluetooth needs Chrome or Edge on Android, Windows or macOS; the serial port needs Chrome or Edge on a PC.
+    No chip has been fabricated: until one exists, only the simulated source produces data.
+    This is a research model, not a medical device.
+  </section>
+</main>
+<script src="nb64_common.js"></script>
+<script src="nb64_cardio_model.js"></script>
+<script src="nb64_pancreas_model.js"></script>
+<script src="nb64_kidney_model.js"></script>
+<script src="monitor.js"></script>
+</body>
+</html>
